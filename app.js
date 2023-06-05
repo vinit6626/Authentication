@@ -4,7 +4,9 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const app = express();
-const md5 = require('md5');
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
 const mongoose = require('mongoose');
 
 const uri = "mongodb+srv://vinit:vinit123@cluster0.orohzmx.mongodb.net/udemy?retryWrites=true&w=majority";
@@ -46,9 +48,10 @@ app.get("/register", function(req, res) {
 });
 app.post('/register', async (req, res) => {
     try {
+        const hash = await bcrypt.hash(req.body.password, saltRounds);
         const newUser = await User.create({
             email: req.body.username,
-            password: md5(req.body.password)
+            password: hash
         });
         console.log("*** Data added successfully to DB ***");
         console.log(newUser);
@@ -60,6 +63,7 @@ app.post('/register', async (req, res) => {
     }
 });
 
+
 app.post("/login", async (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
@@ -67,10 +71,12 @@ app.post("/login", async (req, res) => {
     try {
         const foundUser = await User.findOne({ email: username });
 
-        if (foundUser && foundUser.password === password) {
-            res.render("secrets");
-        } else {
-            res.redirect("/login"); // Invalid credentials, redirect back to login page
+        if (foundUser) {
+            bcrypt.compare(password, foundUser.password, function(err, result) {
+                if (result === true) {
+                    res.render("secrets");
+                }
+            });
         }
     } catch (error) {
         console.log(error);
