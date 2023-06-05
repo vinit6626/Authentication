@@ -4,9 +4,8 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const app = express();
-
+const md5 = require('md5');
 const mongoose = require('mongoose');
-const encrypt = require('mongoose-encryption');
 
 const uri = "mongodb+srv://vinit:vinit123@cluster0.orohzmx.mongodb.net/udemy?retryWrites=true&w=majority";
 
@@ -23,8 +22,6 @@ const userSchema = new mongoose.Schema({
     email: String,
     password: String
 });
-
-userSchema.plugin(encrypt, { secret: process.env.SECRET, encryptedFields: ["password"] });
 
 const User = new mongoose.model("User", userSchema);
 
@@ -51,7 +48,7 @@ app.post('/register', async (req, res) => {
     try {
         const newUser = await User.create({
             email: req.body.username,
-            password: req.body.password
+            password: md5(req.body.password)
         });
         console.log("*** Data added successfully to DB ***");
         console.log(newUser);
