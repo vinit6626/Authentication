@@ -5,6 +5,7 @@ const ejs = require("ejs");
 const app = express();
 
 const mongoose = require('mongoose');
+const encrypt = require('mongoose-encryption');
 
 const uri = "mongodb+srv://vinit:vinit123@cluster0.orohzmx.mongodb.net/udemy?retryWrites=true&w=majority";
 
@@ -17,11 +18,14 @@ mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true }).then(
 
 
 
-const userSchema = {
+const userSchema = new mongoose.Schema({
     email: String,
     password: String
-};
-    
+});
+
+const secret = "Thisisourlittlesecret.";
+userSchema.plugin(encrypt, { secret: secret, encryptedFields: ["password"] });
+
 const User = new mongoose.model("User", userSchema);
 
 
